@@ -22,9 +22,15 @@ class Cody:
         self.maxSCC = kwargs.get('maxSCC', 1E-2)
         self.maxSCCSteps = kwargs.get('maxSCCSteps', 1000)
         self.fermiFilling = kwargs.get('fermiFilling', 0.0)
+
+        # band structure stuff
         self.path = kwargs.get('path', 'Please Supply a Path')
         self.BZ_step = kwargs.get('BZ_step', 1E-2)
         self.interactive_plot = kwargs.get('interactive_plot', False)
+
+        # elastic constants stuff
+        self.maxCauchyStrain = kwargs.get('maxCauchyStrain', 0.01)
+        self.totalCauchySteps = kwargs.get('totalCauchySteps', 10)
 
         print("\n\nHello, I am Cody!\n\n")
         if self.voice:
@@ -224,3 +230,45 @@ class Cody:
                     print('\n\n')
             else:
                 print('No direction has pbc, the molecule is NOT valid! ( Yet :o )\n\n')
+
+    def evaluate_elastic_constants(self):
+        from ase.io import read
+        from SimLab_OOP.analysis import elastic
+        molecules = self.fetch_molecule_list()
+        for molecule in molecules:
+            mol_name = os.path.splitext(os.path.basename(molecule))[0]
+            out_path = f'Optimize_{self.method}_{mol_name}' + os.sep
+            mol = read(f'{out_path}{self.method}_{mol_name}_end.traj')
+            self.latticeOpt = 'No'
+
+            print(f'{self.method} elastic constants for {mol_name}')
+            pbc = mol.get_pbc()
+            if True in pbc:
+                print('Some direction has pbc, the molecule is valid!')
+                calc = self.fetch_dftb_calc(cluster=False)
+                elastic.run(self.method, self.maxCauchyStrain, self.totalCauchySteps,
+                            calc, mol, out_path, mol_name)
+            else:
+                print('No direction has pbc, the molecule is NOT valid! \n\n')
+
+        if self.voice:
+            os.system('spd-say "It is done"')
+
+    def view_elastic_constants(self):
+        from SimLab_OOP.view import elastic
+        from ase.io import read
+        molecules = self.fetch_molecule_list()
+        for molecule in molecules:
+            mol_name = os.path.splitext(os.path.basename(molecule))[0]
+            out_path = f'Optimize_{self.method}_{mol_name}' + os.sep
+            mol = read(f'{out_path}{self.method}_{mol_name}_end.traj')
+            self.latticeOpt = 'No'
+
+            print(f'Plotting {self.method} elastic constants for {mol_name}')
+            pbc = mol.get_pbc()
+            if True in pbc:
+                print('Some direction has pbc, the molecule is valid!')
+                calc = self.fetch_dftb_calc(cluster=False)
+                elastic.run(self.method, mol_name, out_path, self.interactive_plot)
+            else:
+                print('No direction has pbc, the molecule is NOT valid! \n\n')
