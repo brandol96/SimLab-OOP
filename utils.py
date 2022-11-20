@@ -68,24 +68,3 @@ def path_dftb(path, dK, mol, verbose, get_dict):
         j = i
         i += 1
     return dftb_path
-
-
-def cleanup(out_path):
-    if MPI.COMM_WORLD.Get_rank() == 0:
-        parprint('##### CLEANUP ######')
-
-        warning = True
-        output_list = os.listdir()
-        for outFile in output_list:
-            keep = '.traj' in outFile or '.py' in outFile or os.path.isdir(outFile) or 'FermiLevels.out' == outFile or 'effMass.out' == outFile
-            if os.path.isdir(out_path):
-                if warning:
-                    parprint(f'\nrewriting contents of {out_path} folder')
-                    warning = False
-                if not keep: os.rename(outFile, out_path + outFile)
-            else:
-                os.mkdir(out_path)
-                if warning:
-                    parprint(f'\ncreating new {out_path} folder')
-                    warning = False
-                if not keep: os.rename(outFile, out_path + outFile)
