@@ -1,2 +1,2 @@
-# SimLab-OOP
+# SimLab_OOP
 Learning OOP while developing SimLab
