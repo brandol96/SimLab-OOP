@@ -32,6 +32,14 @@ class Cody:
         self.maxCauchyStrain = kwargs.get('maxCauchyStrain', 0.01)
         self.totalCauchySteps = kwargs.get('totalCauchySteps', 10)
 
+        # optical absorption stuff
+        self.laser = kwargs.get('laser', False)
+        self.totalTime = kwargs.get('totalTime', 100)
+        self.timeStep = kwargs.get('timeStep', 0.005)
+        self.fieldStrength = kwargs.get('fieldStrength', 1E-3)
+        self.directions = kwargs.get('directions', 'XYZ')
+        self.fourrierDamp = kwargs.get('fourrierDamp', 10)
+
         print("\n\nHello, I am Cody!\n\n")
         if self.voice:
             os.system('spd-say "Hello, I am Cody!"')
@@ -272,3 +280,83 @@ class Cody:
                 elastic.run(self.method, mol_name, out_path, self.interactive_plot)
             else:
                 print('No direction has pbc, the molecule is NOT valid! \n\n')
+
+    def evaluate_effective_mass(self):
+        from SimLab_OOP.analysis import effMass
+        from ase.io import read
+        molecules = self.fetch_molecule_list()
+        for molecule in molecules:
+            mol_name = os.path.splitext(os.path.basename(molecule))[0]
+            out_path = f'Optimize_{self.method}_{mol_name}' + os.sep
+            mol = read(f'{out_path}{self.method}_{mol_name}_end.traj')
+            self.latticeOpt = 'No'
+
+            print(f'Plotting {self.method} elastic constants for {mol_name}')
+            pbc = mol.get_pbc()
+            if True in pbc:
+                print('Some direction has pbc, the molecule is valid!')
+                calc = self.fetch_dftb_calc(cluster=False)
+                elastic.run(self.method, mol_name, out_path, self.interactive_plot)
+            else:
+                print('No direction has pbc, the molecule is NOT valid! \n\n')
+
+    def evaluate_optical_absorption(self):
+        import shutil
+        from SimLab_OOP.analysis import optical
+        from ase.io import read
+
+        # setup
+        molecules = self.fetch_molecule_list()
+        curr_ase_dftb_command = os.environ["ASE_DFTB_COMMAND"]
+        os.environ["ASE_DFTB_COMMAND"] = "dftb+ | tee PREFIX.out"
+        for molecule in molecules:
+            mol_name = os.path.splitext(os.path.basename(molecule))[0]
+            out_path = f'Optimize_{self.method}_{mol_name}' + os.sep
+            mol = read(f'{out_path}{self.method}_{mol_name}_end.traj')
+
+            print(f'{self.method} optical absorption for {mol_name}')
+
+            pbc = mol.get_pbc()
+            if True in pbc:
+                print('Some direction has pbc, the molecule is NOT valid! ( Yet :o ) \n\n')
+            else:
+                print('No direction has pbc, the molecule is valid!')
+                shutil.copyfile(f'{out_path}charges.bin', f'{os.getcwd()}{os.sep}charges.bin')
+
+                if not self.laser:
+                    # calculation
+                    for direction in self.directions:
+                        optical.run_kick(mol, self.maxSCC, self.maxSCCSteps, self.fermiFilling,
+                                         self.totalTime, self.timeStep, self.fieldStrength, direction)
+
+                # cleanup
+                self.clean_files(out_path)
+                print('\n\n')
+
+        # after calculation restore environment
+        os.environ["ASE_DFTB_COMMAND"] = curr_ase_dftb_command
+        if self.voice:
+            os.system('spd-say "It is done"')
+
+    def view_optical_absorption(self):
+        from SimLab_OOP.view import optical
+        from ase.io import read
+        # setup
+        molecules = self.fetch_molecule_list()
+
+        for molecule in molecules:
+            mol_name = os.path.splitext(os.path.basename(molecule))[0]
+            out_path = f'Optimize_{self.method}_{mol_name}' + os.sep
+            mol = read(f'{out_path}{self.method}_{mol_name}_end.traj')
+
+            print(f'Plotting {self.method} optical absorption for {mol_name}')
+
+            pbc = mol.get_pbc()
+            if True in pbc:
+                print('Some direction has pbc, the molecule is NOT valid! ( Yet :o ) \n\n')
+            else:
+                print('No direction has pbc, the molecule is valid!')
+                if not self.laser:
+                    # calculation
+                    optical.run(out_path, mol_name, self.directions, self.laser,
+                                self.fourrierDamp, self.fieldStrength)
