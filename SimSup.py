@@ -9,6 +9,9 @@ class Cody:
     # This method sets required initial variables
     # I'll put the simulation parameters here
     def __init__(self, **kwargs):
+        threads = kwargs.get('threads', 1)
+        os.environ["OMP_NUM_THREADS"] = str(threads)
+
         self.method = kwargs.get('method', 'DFTB')
         self.voice = kwargs.get('voice', False)
         self.label = kwargs.get('label', 'dftb_output')
@@ -358,5 +361,5 @@ class Cody:
                 print('No direction has pbc, the molecule is valid!')
                 if not self.laser:
                     # calculation
-                    optical.run(out_path, mol_name, self.directions, self.laser,
-                                self.fourrierDamp, self.fieldStrength)
+                    optical.run(self.method, out_path, mol_name, self.interactive_plot,
+                                self.directions, self.laser, self.fourrierDamp, self.fieldStrength)

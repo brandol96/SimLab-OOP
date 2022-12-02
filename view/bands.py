@@ -124,7 +124,7 @@ def run_dftb(method, out_path, mol_name, mol, path, step, interactive_plot):
 
         # setup figure
         fig = plt.figure(1, figsize=(8, 10))  # start a figure
-        fig.suptitle(mol_name.replace("-", " "), fontsize=title_font)
+        fig.suptitle(mol_name.replace("_", " "), fontsize=title_font)
 
         # bands axes
         ax = fig.add_axes([.12, .07, .67, .85])  # axes [left, bottom, width, height]
