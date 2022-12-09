@@ -21,7 +21,17 @@ def read_spec_ev(path):
     return x, y
 
 
-def run(out_path, mol_name, directions, laser, fourrierDamp, fieldStrenght):
+def run(method, out_path, mol_name, interactive_plot, directions, laser, fourrierDamp, fieldStrenght):
+    # a few parameters
+    zoom = 6
+    title_font = 20
+    label_font = 16
+    text_font = 14
+
+    print('\n\nstart plot\n\n')
+    # setup figure
+    fig = plt.figure()  # start a figure
+    fig.suptitle(mol_name.replace("_", " "), fontsize=title_font)
     total = np.array([])
     d = 0.
     if 'X' in directions:
@@ -76,9 +86,8 @@ def run(out_path, mol_name, directions, laser, fourrierDamp, fieldStrenght):
     X, Y = read_spec_ev(out_path)
 
     plt.plot(X, Y)
-    plt.title(f'{mol_name}')
     fig.savefig(f'{out_path}{method}_{mol_name}_Optial.png')
     if interactive_plot:
         plt.show()
     else:
-        plt.clf()vv
+        plt.clf()

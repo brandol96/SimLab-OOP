@@ -27,6 +27,13 @@ def read_dos(path, mol_name):
 
 
 def read_fermi_levels(path, mol_name):
+    # POSSIBLE PROBLEM:
+    # sometimes a Fermi Filling is required by some, but not all molecules in some set
+    # if a zero gap material is present, then the input of a Fermi Filling certainly will ensure
+    # some fraction of an occupation in valence band, making this search to find a "fake" half-filled band
+    # this is problematic because I'd like to make Cody FLEXIBLE to run the same procedure for
+    # various molecules, one possible avenue to solve this is do some rounding when searching for
+    # occupation, certainly a 0.00001 occupation is irrelevant to many applications!
     print('read Fermi Level')
     lumo = [0, 0, 1000]
     homo = [0, 0, -1000]
@@ -124,7 +131,7 @@ def run_dftb(method, out_path, mol_name, mol, path, step, interactive_plot):
 
         # setup figure
         fig = plt.figure(1, figsize=(8, 10))  # start a figure
-        fig.suptitle(mol_name.replace("_", " "), fontsize=title_font)
+        #fig.suptitle(mol_name.replace("_", " "), fontsize=title_font)
 
         # bands axes
         ax = fig.add_axes([.12, .07, .67, .85])  # axes [left, bottom, width, height]

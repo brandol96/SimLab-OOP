@@ -299,7 +299,7 @@ class Cody:
             if True in pbc:
                 print('Some direction has pbc, the molecule is valid!')
                 calc = self.fetch_dftb_calc(cluster=False)
-                elastic.run(self.method, mol_name, out_path, self.interactive_plot)
+                effMass.run(mol, mol_name, out_path, self.BZ_step, self.interactive_plot)
             else:
                 print('No direction has pbc, the molecule is NOT valid! \n\n')
 
